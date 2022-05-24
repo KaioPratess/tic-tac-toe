@@ -1,0 +1,155 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+ul {
+  list-style: none;
+}
+
+/* HEADER */
+.header {
+  flex: 1;
+  padding: 20px 40px;
+}
+
+/* MAIN */
+.main {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  max-width: 900px;
+  margin: 0 auto 60px auto;
+}
+
+/* SCORE PANEL */
+.score-panel ul {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 30px;
+}
+
+.score-panel ul li {
+  display: grid;
+  gap: 5px;
+  text-align: center;
+}
+
+/* GAME BOARD */
+.game-board {
+  display: flex;
+  flex-wrap: wrap;
+  width: 450px;
+  align-self: center;
+}
+
+.block {
+  width: 150px;
+  height: 150px;
+}
+
+.cell1, 
+.cell2,
+.cell4,
+.cell5 {
+  border-right: 2px solid black;
+  border-bottom: 2px solid black;
+}
+
+.cell7,
+.cell8 {
+  border-right: 2px solid black;
+}
+
+.cell3,
+.cell6 {
+  border-bottom: 2px solid black;
+}
+
+/* MENU */
+  .menu-bg {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    background-color: greenyellow;
+    position: fixed;
+    top: 0;
+    display: none;
+  }
+
+  .menu-bg div {
+    width: 650px;
+    height: 380px;
+    background-color: #d4d4d4;
+    border-radius: 12px;
+    grid-auto-rows: min-content;
+    gap: 40px;
+    justify-content: center;
+    align-content: center;
+  }
+  
+  .game-mode {
+    display: none;
+  }
+
+  .multiplayer-mode {
+    display: none;
+  }
+
+  .solo-mode {
+    display: none;
+  }
+
+  .menu-bg h2 {
+    font-size: 3rem;
+  }
+
+
+  .game-mode ul {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .game-mode ul li {
+    width: 155px;
+    height: 155px;
+    background-color: #B4B4B4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  .multiplayer-mode ul, .solo-mode ul {
+    display: grid;
+    gap: 20px;
+  }
+
+  .multiplayer-mode label, .solo-mode label {
+    font-size: 1.5rem;
+  }
+
+  .multiplayer-mode input, .solo-mode input,
+  .solo-mode select {
+    height: 40px;
+    width: 200px;
+    outline: none;
+    font-size: 1.125rem;
+    padding: 0 8px;
+  }
+
+  .btn {
+    height: 40px;
+    cursor: pointer;
+  }
+
+/* FOOTER */
+  .footer {
+    text-align: center;
+    flex: 1;
+    padding: 10px 0;
+  }

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic Tac Toe</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./script.js" defer></script>
+</head>
+
+<body>
+  <header class="header">
+    <h1>Tic Tac Toe Game</h1>
+  </header>
+  <main class="main">
+    <div class="score-panel">
+      <ul>
+        <li>
+          <p class="player-one-name">Player One</p>
+          <span class="score-player-one">1</span>
+        </li>
+        <li>
+          <p class="player-two-name">Player Two</p>
+          <span class="score-player-two">0</span>
+        </li>
+      </ul>
+    </div>
+    <div class="game-board"></div>
+  </main>
+  <div class="menu-bg">
+    <div class="game-mode">
+      <h2>Select Game Mode</h2>
+      <ul>
+        <li>Multiplayer</li>
+        <li>Solo</li>
+      </ul>
+    </div>
+    <div class="multiplayer-mode">
+      <h2>Multiplayer</h2>
+      <ul>
+        <li>
+          <label for="player1-name">Player 1 Name: </label>
+          <input type="text" id="player1-name" name="player1-name" required maxlength="14" minlength="2">
+        </li>
+        <li>
+          <label for="player2-name">Player 2 Name: </label>
+          <input type="text" id="player2-name" name="player2-name" required maxlength="14" minlength="2">
+        </li>
+      </ul>
+      <button type="button" class="btn">Start Game</button>
+    </div>
+    <div class="solo-mode">
+      <h2>Solo</h2>
+      <ul>
+        <li>
+          <label for="player1-name">Player 1 Name: </label>
+          <input type="text" id="player1-name" name="player1-name" required maxlength="14" minlength="2">
+        </li>
+        <li>
+          <label for="player2-name">Select Difficulty: </label>
+          <select name="level" id="level">
+            <option value="eazy">Eazy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+            <option value="impossible">Impossible</option>
+          </select>
+        </li>
+      </ul>
+      <button type="button" class="btn">Start Game</button>
+    </div>
+  </div>
+  <footer class="footer">
+    <p>Made by KaioPratess</p>
+  </footer>
+</body>
+
+</html>
