@@ -18,11 +18,11 @@
     <div class="score-panel">
       <ul>
         <li>
-          <p class="player-one-name">Player One</p>
-          <span class="score-player-one">1</span>
+          <p class="name-display">Player One</p>
+          <span class="score-player-one">0</span>
         </li>
         <li>
-          <p class="player-two-name">Player Two</p>
+          <p class="name-display">Player Two</p>
           <span class="score-player-two">0</span>
         </li>
       </ul>
@@ -33,38 +33,40 @@
     <div class="game-mode">
       <h2>Select Game Mode</h2>
       <ul>
-        <li>Multiplayer</li>
-        <li>Solo</li>
+        <li class="multiplayer">Multiplayer</li>
+        <li class="solo">Solo</li>
       </ul>
     </div>
     <div class="multiplayer-mode">
+      <span class="arrow">⬅</span>
       <h2>Multiplayer</h2>
       <ul>
         <li>
           <label for="player1-name">Player 1 Name: </label>
-          <input type="text" id="player1-name" name="player1-name" required maxlength="14" minlength="2">
+          <input type="text" id="player1-name" name="player1-name" maxlength="14" minlength="2">
         </li>
         <li>
           <label for="player2-name">Player 2 Name: </label>
-          <input type="text" id="player2-name" name="player2-name" required maxlength="14" minlength="2">
+          <input type="text" id="player2-name" name="player2-name" maxlength="14" minlength="2">
         </li>
       </ul>
       <button type="button" class="btn">Start Game</button>
     </div>
     <div class="solo-mode">
+      <span class="arrow">⬅</span>
       <h2>Solo</h2>
       <ul>
         <li>
           <label for="player1-name">Player 1 Name: </label>
-          <input type="text" id="player1-name" name="player1-name" required maxlength="14" minlength="2">
+          <input type="text" id="player1-name" name="player1-name" maxlength="14" minlength="2">
         </li>
         <li>
           <label for="player2-name">Select Difficulty: </label>
           <select name="level" id="level">
-            <option value="eazy">Eazy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-            <option value="impossible">Impossible</option>
+            <option value="Eazy" selected>Eazy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+            <option value="Impossible">Impossible</option>
           </select>
         </li>
       </ul>
