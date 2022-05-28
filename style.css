@@ -37,6 +37,14 @@ ul {
 }
 
 .score-panel p {
+  font-size: 2rem;
+}
+
+.score-panel span {
+  font-size: 1.5rem;
+}
+
+.round p:last-child {
   font-size: 1.5rem;
 }
 
