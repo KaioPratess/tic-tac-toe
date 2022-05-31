@@ -61,11 +61,11 @@
       <h2>Solo</h2>
       <ul>
         <li>
-          <label for="player1-name">Player 1 Name: </label>
+          <label for="player1-name">Name: </label>
           <input type="text" id="player1-name" name="player1-name" maxlength="14" minlength="2">
         </li>
         <li>
-          <label for="player2-name">Select Difficulty: </label>
+          <label for="player2-name">Difficulty: </label>
           <select name="level" id="level">
             <option value="Eazy" selected>Eazy</option>
             <option value="Medium">Medium</option>
@@ -75,6 +75,25 @@
         </li>
       </ul>
       <button type="button" class="btn">Start Game</button>
+    </div>
+  </div>
+  <div class="winner-bg">
+    <div class="winner-container">
+      <p><span class="champ">"Player"</span> is the Champion!<br>Congratulations!</p>
+      <div>
+        <img src="img/trophy.png" alt="trophy">
+      </div>
+      <button class="restart-btn">Restart Game</button>
+    </div>
+  </div>
+
+  <div class="loser-bg">
+    <div class="loser-container">
+      <p>The Machine Won!<br>More luck next time</p>
+      <div>
+        <img src="img/game-over.png" alt="loser">
+      </div>
+      <button class="restart-btn">Restart Game</button>
     </div>
   </div>
   <footer class="footer">

@@ -8,6 +8,16 @@ ul {
   list-style: none;
 }
 
+body {
+  background-color: #643579;
+  color: white;
+}
+
+img {
+  display: block;
+  width: 100%;
+}
+
 /* HEADER */
 .header {
   flex: 1;
@@ -25,15 +35,28 @@ ul {
 
 /* SCORE PANEL */
 .score-panel ul {
-  display: flex;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   margin-bottom: 30px;
+  padding: 0;
 }
 
 .score-panel ul li {
   display: grid;
   gap: 5px;
   text-align: center;
+  position: relative;
+}
+
+.score-panel ul li:nth-child(1) p.turn::before,
+.score-panel ul li:nth-child(3) p.turn::before {
+  content: '▼';
+  display: inline-block;
+  position: absolute;
+  top: -35px;
+  right: 85px;
+  margin-right: 50px;
+  color: white;
 }
 
 .score-panel p {
@@ -65,22 +88,22 @@ ul {
   font-size: 6rem;
 }
 
-.cell1, 
-.cell2,
-.cell4,
-.cell5 {
-  border-right: 2px solid black;
-  border-bottom: 2px solid black;
-}
-
-.cell7,
-.cell8 {
-  border-right: 2px solid black;
-}
-
+.cell0, 
+.cell1,
 .cell3,
-.cell6 {
-  border-bottom: 2px solid black;
+.cell4 {
+  border-right: 2px solid #F5EDF7;
+  border-bottom: 2px solid #F5EDF7;
+}
+
+.cell6,
+.cell7 {
+  border-right: 2px solid #F5EDF7;
+}
+
+.cell2,
+.cell5 {
+  border-bottom: 2px solid #F5EDF7;
 }
 
 /* MENU */
@@ -90,7 +113,7 @@ ul {
     align-items: center;
     height: 100%;
     width: 100%;
-    background-color: greenyellow;
+    background: #3D1860;
     position: fixed;
     top: 0;
   }
@@ -98,12 +121,13 @@ ul {
   .menu-bg div {
     width: 650px;
     height: 380px;
-    background-color: #d4d4d4;
+    background-color: #643579;
     border-radius: 12px;
     grid-auto-rows: min-content;
     gap: 40px;
     justify-content: center;
     align-content: center;
+    color: #F5EDF7;
   }
   
   .game-mode {
@@ -133,13 +157,14 @@ ul {
   .game-mode ul li {
     width: 155px;
     height: 155px;
-    background-color: #B4B4B4;
+    background-color: #9d83aa;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     cursor: pointer;
     border-radius: 12px;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, .2);
   }
 
   .multiplayer-mode ul, .solo-mode ul {
@@ -149,12 +174,14 @@ ul {
 
   .multiplayer-mode label, .solo-mode label {
     font-size: 1.5rem;
+    display: block;
+    margin-bottom: 5px;
   }
 
   .multiplayer-mode input, .solo-mode input,
   .solo-mode select {
     height: 40px;
-    width: 200px;
+    width: 300px;
     outline: none;
     font-size: 1.125rem;
     padding: 0 8px;
@@ -171,6 +198,70 @@ ul {
     font-size: 3rem;
     cursor: pointer;
   }
+
+/* Winner and Loser Div's */
+.winner-bg, .loser-bg {
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  display: none;
+}
+
+.winner-container, .loser-container {
+  display: flex;
+  width: 550px;
+  height: 450px;
+  border: 2px solid black;
+  border-radius: 12px;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding: 20px;
+  color: black;
+}
+
+.winner-container {
+  background: #CAC531;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #F3F9A7, #CAC531);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #F3F9A7, #CAC531); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+.loser-container {
+  background: #ED213A;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #93291E, #ED213A);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #93291E, #ED213A); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */  
+}
+
+.winner-container div, .loser-container div {
+  width: 200px;
+  height: 200px;
+}
+
+.winner-container p, .loser-container p {
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.restart-btn {
+  padding: 10px 30px;
+  border-radius: 12px;
+  border: 2px solid black;
+  cursor: pointer;
+  background-color: transparent;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  color: black;
+}
+
+.restart-btn:hover {
+  color: white;
+  background: #643579;
+}
 
 /* FOOTER */
   .footer {

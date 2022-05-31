@@ -23,11 +23,11 @@ instance.callback(data);
 }
 }
 };
-
+console.log(events.events)
 // Game Board Module
 const gameBoard = (function() {  
     const board = document.querySelector('.game-board');
-    let position = 1;
+    let position = 0;
     let index = 0;
     const array = new Array(3).fill(0).map(() => new Array(3).fill(0));
 
@@ -64,7 +64,7 @@ const gameBoard = (function() {
       })
     }
 
-    function checkArray() {
+    function evaluateArray() {
       const row0 = array[0].join('');
       const row1 = array[1].join('');
       const row2 = array[2].join('');
@@ -85,10 +85,14 @@ const gameBoard = (function() {
         events.publish('tie');
       }
     }
+
+    function checkArray() {
+      console.log(array)
+    }
   
     createCells();
 
-    return {changeArray, checkArray, resetArray}
+    return {changeArray, evaluateArray, resetArray, checkArray}
 })();
 
 // Menu Module
@@ -99,15 +103,18 @@ const getGameMode = (function () {
   const multiplayerModeDiv = document.querySelector('.multiplayer-mode');
   const soloModeDiv = document.querySelector('.solo-mode');
   const returnArrows = document.querySelectorAll('.arrow');
+  let gameMode;
 
   function selectMultiplayer() {
     gameModeDiv.style.display = 'none';
     multiplayerModeDiv.style.display = 'grid';
+    gameMode = 'multiplayer';
   }
 
   function selectSolo() {
     gameModeDiv.style.display = 'none';
     soloModeDiv.style.display = 'grid';
+    gameMode = 'solo';
   }
 
   function backToStart() {
@@ -117,13 +124,10 @@ const getGameMode = (function () {
   }
 
   multiplayerBtn.addEventListener('click', selectMultiplayer);
-
   soloBtn.addEventListener('click', selectSolo);
-
   returnArrows.forEach((item) => {
     item.addEventListener('click', backToStart);
 });
-
 })()
 
 // Multiplayer Module
@@ -162,155 +166,199 @@ const multiplayerMode = (function () {
     startGameBtn.addEventListener('click', startGame);
 })();
 
+let move = 1;
+// Control Game
 (function controlGame() {
   const scoreDisplay1 = document.querySelector('.score-display-one');
   const scoreDisplay2 = document.querySelector('.score-display-two');
-  const panel1 = document.querySelector('.score-panel ul li:first-of-type');
-  const panel2 =  document.querySelector('.score-panel ul li:last-of-type');
+  const nameDisplay1 = document.querySelector('.score-panel ul li:first-of-type p');
+  const nameDisplay2 =  document.querySelector('.score-panel ul li:last-of-type p');
   const cells = document.querySelectorAll('.block');
-  const roundP = document.querySelector('.round p:last-child');
   let roundCounter = document.querySelector('.round-counter');
+  const winnerBg = document.querySelector('.winner-bg');
+  const champ = document.querySelector('.champ');
+  const restartButtons = document.querySelectorAll('.restart-btn');
   
-  panel1.style.fontWeight = 'bold';
-  
-  let move = 1;
+  nameDisplay1.classList.add('turn');
   
   function onMove(event) {
     const cell = event.target.getAttribute('class');
+    // player 1 move
     if(move % 2 !== 0) {
-      panel2.style.fontWeight = 'bold';
-      panel1.style.fontWeight = 'normal';
       if(event.target.textContent === '') {
+        nameDisplay1.classList.remove('turn');
+        nameDisplay2.classList.add('turn');
+        const position = cell.charAt(16);
         const index = cell.charAt(cell.length -1);
         const row = cell.charAt(10);
         const symbol = 'x';
         event.target.textContent = symbol;
         move++;
         gameBoard.changeArray(row, index, symbol);
-        gameBoard.checkArray();
+        gameBoard.evaluateArray();
+        events.publish('play', position);
       }
-    } else {
-      panel1.style.fontWeight = 'bold';
-      panel2.style.fontWeight = 'normal';
-        if(event.target.textContent === '') {
-          const index = cell.charAt(cell.length -1);
-          const row = cell.charAt(10);
-          const symbol = 'o';
-          event.target.textContent = symbol;
-          move++;
-          gameBoard.changeArray(row, index, symbol);
-          gameBoard.checkArray();
-      }
-    }
+    } // Player 2 move
+    // else {
+    //   if(event.target.textContent === '') {
+    //       nameDisplay2.classList.remove('turn');
+    //       nameDisplay1.classList.add('turn');
+    //       const index = cell.charAt(cell.length -1);
+    //       const row = cell.charAt(10);
+    //       const symbol = 'o';
+    //       event.target.textContent = symbol;
+    //       move++;
+    //       gameBoard.changeArray(row, index, symbol);
+    //       gameBoard.evaluateArray();
+    //   }
+    // }
   }
 
   function onWinning(value) {
     setTimeout(() => {
+      nameDisplay2.classList.remove('turn');
+      nameDisplay1.classList.add('turn');
       if(value === 'x') {
-        alert('Player 1 is the winner');
         scoreDisplay1.textContent++
       } else if(value === 'o') {
-        alert('Player 2 is the winner');
-        scoreDisplay2.textContent++
+          scoreDisplay2.textContent++
       }
       gameBoard.resetArray();
       cells.forEach((cell) => {
         cell.textContent = '';
       })
       move = 1;
-      panel1.style.fontWeight = 'bold';
-      panel2.style.fontWeight = 'normal';
       roundCounter.textContent++;
       countScore();
+      events.publish('reset', '');
     }, 100)
   }
 
   function onTie() {
     setTimeout(() => {
+      nameDisplay2.classList.remove('turn');
+      nameDisplay1.classList.add('turn');
       gameBoard.resetArray();
       cells.forEach((cell) => {
         cell.textContent = '';
       })
       move = 1;
-      panel1.style.fontWeight = 'bold';
-      panel2.style.fontWeight = 'normal';
       roundCounter.textContent++;
       countScore();
+      events.publish('reset', '');
     }, 100)
   }
 
   function countScore() {
-    if(scoreDisplay1.textContent === '3') {
-        gameBoard.resetArray();
-        cells.forEach((cell) => {
-          cell.textContent = '';
-        })
-        scoreDisplay1.textContent = 0;
-        scoreDisplay2.textContent = 0;
-        roundCounter.textContent = 0;
-        alert('player one is the Champion');
+    setTimeout(() => {
+      if(scoreDisplay1.textContent === '3') {
+        winnerBg.style.display = 'flex';
+        champ.textContent = nameDisplay1.textContent;
     } else if(scoreDisplay2.textContent ==='3') {
-          gameBoard.resetArray();
-          cells.forEach((cell) => {
-            cell.textContent = '';
-          })
-          scoreDisplay1.textContent = 0;
-          scoreDisplay2.textContent = 0;
-          roundCounter.textContent = 0;
-          alert('player two is the Champion');
+          winnerBg.style.display = 'flex';
+          champ.textContent = nameDisplay2.textContent;
     } else if(roundCounter.textContent > '5') {
         if(scoreDisplay1.textContent > scoreDisplay2.textContent) {
-            alert('Player 1 is the Champion')
+            winnerBg.style.display = 'flex';
+            champ.textContent = nameDisplay1.textContent;
         }  else if(scoreDisplay2.textContent > scoreDisplay1.textContent) {
-              alert('Player 2 is the Champion')
+              winnerBg.style.display = 'flex';
+              champ.textContent = nameDisplay2.textContent;
         }  else if(scoreDisplay2.textContent === scoreDisplay1.textContent) {
-              return
+              resetGame();  
+              alert('Tie Match');
         }
     }
+    }, 50)
   }
   
+  function resetGame() {
+      winnerBg.style.display = 'none';
+      scoreDisplay1.textContent = 0;
+      scoreDisplay2.textContent = 0;
+      roundCounter.textContent = 0;
+      cells.forEach((cell) => {
+        cell.textContent = '';
+      })
+      gameBoard.resetArray();
+  }
+
+  
+  restartButtons.forEach((btn) => {
+    btn.addEventListener('click', resetGame);
+  });
   events.subscribe('tie', events.events, onTie);
   events.subscribe('winner', events.events, onWinning);
   events.subscribe("move", events.events, onMove);
 })();
 
 // Solo Module
-// const soloMode = (function() {
-//     const menuBg = document.querySelector('.menu-bg');
-//     const soloModeDiv = document.querySelector('.solo-mode');
-//     const playerInput = document.querySelector('.solo-mode #player1-name');
-//     const levelSelect = document.querySelector('#level');
-//     const nameDisplay = document.querySelectorAll('.name-display');
-//     const startGameBtn = document.querySelector('.solo-mode .btn');
+const soloMode = (function() {
+    const menuBg = document.querySelector('.menu-bg');
+    const soloModeDiv = document.querySelector('.solo-mode');
+    const playerInput = document.querySelector('.solo-mode #player1-name');
+    const levelSelect = document.querySelector('#level');
+    const nameDisplay = document.querySelectorAll('.name-display');
+    const startGameBtn = document.querySelector('.solo-mode .btn');
 
-//     function createPlayer() {
-//       const playerName = playerInput.value.charAt(0).toUpperCase() + playerInput.value.slice(1,playerInput.value.length);
+    function createPlayer() {
+      const playerName = playerInput.value.charAt(0).toUpperCase() + playerInput.value.slice(1,playerInput.value.length);
   
-//       const player1 = Player(playerName);
-//       const player2 = Player('Machine', levelSelect.value);
+      const player1 = Player(playerName);
+      const player2 = Player('Machine', levelSelect.value);
       
-//       console.log(player1, player2)
-//       nameDisplay[0].textContent = player1.name;
-//       nameDisplay[1].textContent = `${player2.name} - ${player2.difficulty}`;
-//     }  
+      nameDisplay[0].textContent = player1.name;
+      nameDisplay[1].textContent = `${player2.name} - ${player2.difficulty}`;
+    }  
 
-//     function startGame(event) {
-//       if(playerInput.value === '') {
-//         event.preventDefault();
-//         window.alert('Write your name!')
-//       } else {
-//           createPlayer();
-//           soloModeDiv.style.display = 'none';
-//           menuBg.style.display = 'none';
-//       }
-//     }
+    function startGame(event) {
+      if(playerInput.value === '') {
+        event.preventDefault();
+        window.alert('Write your name!')
+      } else {
+          createPlayer();
+          soloModeDiv.style.display = 'none';
+          menuBg.style.display = 'none';
+      }
+    }
 
-//     startGameBtn.addEventListener('click', startGame);
+    function createMachine() {
+      const nameDisplay1 = document.querySelector('.score-panel ul li:first-of-type p');
+      const nameDisplay2 =  document.querySelector('.score-panel ul li:last-of-type p');
+      let plays = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+      const symbol = 'o';
+      const cells = document.querySelectorAll('.block');
+      events.subscribe('play', events.events, (position) => {
+        if(plays.length) {
+          plays.splice(plays.indexOf(+position), 1);
+          const randomIndex = getRandom(0, plays.length - 1);
+          const cell = cells[plays[randomIndex]].getAttribute('class');
+          const index = cell.charAt(cell.length -1);
+          const row = cell.charAt(10);
+          cells[plays[randomIndex]].textContent = 'o';
+          plays.splice(randomIndex, 1);
+          move++;
+          nameDisplay1.classList.add('turn');
+          nameDisplay2.classList.remove('turn');
+          gameBoard.changeArray(row, index, symbol);
+          gameBoard.checkArray();
+          events.subscribe('reset', events.events, () => {
+            plays = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+          })
+        }
+      })
+        
+    }
 
-// })();
+    function getRandom(min, max) {
+      return Math.floor(Math.random() * (max - min) + min)
+    }  
+
+    startGameBtn.addEventListener('click', startGame);
+    createMachine();
+})();
 
 // Player Factory
 const Player = function(name, difficulty) {
-  let points;
-  return { name, points, difficulty }
+  return { name, difficulty }
 }
