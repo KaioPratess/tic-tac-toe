@@ -78,18 +78,20 @@ const gameBoard = (function() {
 
       if(row0 === 'xxx' || row1 === 'xxx' || row2 ===  'xxx' || col1 === 'xxx' || col2 === 'xxx' || col3 === 'xxx' || diag1 === 'xxx' || diag2 === 'xxx') {
         events.publish('winner', 'x');
+        return 1
       } else if(row0 === 'ooo' || row1 === 'ooo' || row2 ===  'ooo' || col1 === 'ooo' || col2 === 'ooo' || col3 === 'ooo' || diag1 === 'ooo' || diag2 === 'ooo') {
         events.publish('winner', 'o');
       } else if(!row0.includes(0) && !row1.includes(0) && !row2.includes(0)) {
         alert('Tie');
-        events.publish('tie');
+        events.publish('tie', 0);
+        return 0
       }
     }
 
     function checkArray() {
-      console.log(array)
+      return array
     }
-  
+    
     createCells();
 
     return {changeArray, evaluateArray, resetArray, checkArray}
@@ -103,18 +105,17 @@ const getGameMode = (function () {
   const multiplayerModeDiv = document.querySelector('.multiplayer-mode');
   const soloModeDiv = document.querySelector('.solo-mode');
   const returnArrows = document.querySelectorAll('.arrow');
-  let gameMode;
 
   function selectMultiplayer() {
     gameModeDiv.style.display = 'none';
     multiplayerModeDiv.style.display = 'grid';
-    gameMode = 'multiplayer';
+    events.publish('multiplayer', '');
   }
 
   function selectSolo() {
     gameModeDiv.style.display = 'none';
     soloModeDiv.style.display = 'grid';
-    gameMode = 'solo';
+    events.publish('solo', '');
   }
 
   function backToStart() {
@@ -128,45 +129,149 @@ const getGameMode = (function () {
   returnArrows.forEach((item) => {
     item.addEventListener('click', backToStart);
 });
+
 })()
 
 // Multiplayer Module
-const multiplayerMode = (function () {
-  const menuBg = document.querySelector('.menu-bg');
-  const multiplayerModeDiv = document.querySelector('.multiplayer-mode');
-  const playerInput = document.querySelectorAll('.multiplayer-mode input[type="text"]');
-  const nameDisplay = document.querySelectorAll('.name-display');
-  const startGameBtn = document.querySelector('.multiplayer-mode .btn');
+events.subscribe('multiplayer', events.events, () => {
+  const multiplayerMode = (function () {
+    const menuBg = document.querySelector('.menu-bg');
+    const multiplayerModeDiv = document.querySelector('.multiplayer-mode');
+    const playerInput = document.querySelectorAll('.multiplayer-mode input[type="text"]');
+    const nameDisplay = document.querySelectorAll('.name-display');
+    const startGameBtn = document.querySelector('.multiplayer-mode .btn');
+  
+    let player1;
+    let player2;
+  
+    function createPlayer() {
+        const player1Name = playerInput[0].value.charAt(0).toUpperCase() + playerInput[0].value.slice(1,playerInput[0].value.length);
+        const player2Name = playerInput[1].value.charAt(0).toUpperCase() + playerInput[1].value.slice(1,playerInput[1].value.length);
+  
+        player1 = Player(player1Name);
+        player2 = Player(player2Name);
+  
+        nameDisplay[0].textContent = player1.name;
+        nameDisplay[1].textContent = player2.name;
+      } 
+  
+      function startGame(event) {
+        if(playerInput[0].value === '' || playerInput[1].value === '') {
+          event.preventDefault();
+          window.alert('Write your names!');
+        } else {
+            createPlayer()
+            multiplayerModeDiv.style.display = 'none';
+            menuBg.style.display = 'none';
+          }
+      }
+  
+      startGameBtn.addEventListener('click', startGame);
+  })();
+})
 
-  let player1;
-  let player2;
-
-  function createPlayer() {
-      const player1Name = playerInput[0].value.charAt(0).toUpperCase() + playerInput[0].value.slice(1,playerInput[0].value.length);
-      const player2Name = playerInput[1].value.charAt(0).toUpperCase() + playerInput[1].value.slice(1,playerInput[1].value.length);
-
-      player1 = Player(player1Name);
-      player2 = Player(player2Name);
-
-      nameDisplay[0].textContent = player1.name;
-      nameDisplay[1].textContent = player2.name;
-    } 
-
-    function startGame(event) {
-      if(playerInput[0].value === '' || playerInput[1].value === '') {
-        event.preventDefault();
-        window.alert('Write your names!');
-      } else {
-          createPlayer()
-          multiplayerModeDiv.style.display = 'none';
-          menuBg.style.display = 'none';
-        }
-    }
-
-    startGameBtn.addEventListener('click', startGame);
-})();
 
 let move = 1;
+let position = -1;
+
+// Solo Module
+events.subscribe('solo', events.events, () => {
+  const soloMode = (function() {
+    const menuBg = document.querySelector('.menu-bg');
+    const soloModeDiv = document.querySelector('.solo-mode');
+    const playerInput = document.querySelector('.solo-mode #player1-name');
+    const level = document.querySelector('#level');
+    const nameDisplay = document.querySelectorAll('.name-display');
+    const startGameBtn = document.querySelector('.solo-mode .btn');
+
+    function createPlayer() {
+      const playerName = playerInput.value.charAt(0).toUpperCase() + playerInput.value.slice(1,playerInput.value.length);
+  
+      const player1 = Player(playerName);
+      const player2 = Player('Machine', level.value);
+      
+      nameDisplay[0].textContent = player1.name;
+      nameDisplay[1].textContent = `${player2.name} - ${player2.level}`;
+    }  
+
+    function startGame(event) {
+      if(playerInput.value === '') {
+        event.preventDefault();
+        window.alert('Write your name!')
+      } else {
+          createPlayer();
+          soloModeDiv.style.display = 'none';
+          menuBg.style.display = 'none';
+      }
+    }
+
+    function createMachine() {
+      const nameDisplay1 = document.querySelector('.score-panel ul li:first-of-type p');
+      const nameDisplay2 =  document.querySelector('.score-panel ul li:last-of-type p');
+      let plays = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+      const symbol = 'o';
+      const cells = document.querySelectorAll('.block');
+      events.subscribe('play', events.events, (position) => {
+        setTimeout(() => {
+          switch(level.value) {
+            case 'Eazy':
+                if(plays.length === 1) {
+              gameBoard.evaluateArray();
+            } else {
+              plays.splice(plays.indexOf(+position), 1);
+              const randomIndex = getRandom(0, plays.length - 1);
+              const cell = cells[plays[randomIndex]].getAttribute('class');
+              const index = cell.charAt(cell.length -1);
+              const row = cell.charAt(10);
+              cells[plays[randomIndex]].textContent = 'o';
+              plays.splice(randomIndex, 1);
+              nameDisplay1.classList.add('turn');
+              nameDisplay2.classList.remove('turn');
+              gameBoard.changeArray(row, index, symbol);
+              gameBoard.checkArray();
+              events.subscribe('reset', events.events, () => {
+                  plays = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+                });
+                gameBoard.evaluateArray();
+                move++;
+              }
+              break;
+            case 'Medium':
+                console.log(level.value)
+              break;
+            case 'Impossible':
+              let board = gameBoard.checkArray();
+              let bestMove = smartMachine.findBestMove(board);
+              console.log("The Optimal Move is:");
+              console.log("ROW: " + bestMove.row + " COL: "+ bestMove.col);
+              gameBoard.changeArray(bestMove.row, bestMove.col, symbol);
+                move++;
+              cells.forEach((cell) => {
+                const cellClass = cell.getAttribute('class');
+                const col = cellClass.charAt(24);
+                const row = cellClass.charAt(10);
+
+                if(bestMove.row == row && bestMove.col == col) {
+                  cell.textContent = symbol;
+                }
+              })
+              gameBoard.evaluateArray();
+              break;
+          }
+        }, 300);
+        
+      })
+    }
+
+    function getRandom(min, max) {
+      return Math.floor(Math.random() * (max - min) + min)
+    }  
+
+    startGameBtn.addEventListener('click', startGame);
+    createMachine();
+})();
+});
+
 // Control Game
 (function controlGame() {
   const scoreDisplay1 = document.querySelector('.score-display-one');
@@ -176,9 +281,9 @@ let move = 1;
   const cells = document.querySelectorAll('.block');
   let roundCounter = document.querySelector('.round-counter');
   const winnerBg = document.querySelector('.winner-bg');
+  const loserBg = document.querySelector('.loser-bg');
   const champ = document.querySelector('.champ');
   const restartButtons = document.querySelectorAll('.restart-btn');
-  
   nameDisplay1.classList.add('turn');
   
   function onMove(event) {
@@ -195,23 +300,29 @@ let move = 1;
         event.target.textContent = symbol;
         move++;
         gameBoard.changeArray(row, index, symbol);
-        gameBoard.evaluateArray();
-        events.publish('play', position);
+        const evalArray = gameBoard.evaluateArray();
+
+        if(evalArray === 1 || evalArray === 0) {
+            return
+        } else {
+              events.publish('play', position);   
+          }
+
       }
     } // Player 2 move
-    // else {
-    //   if(event.target.textContent === '') {
-    //       nameDisplay2.classList.remove('turn');
-    //       nameDisplay1.classList.add('turn');
-    //       const index = cell.charAt(cell.length -1);
-    //       const row = cell.charAt(10);
-    //       const symbol = 'o';
-    //       event.target.textContent = symbol;
-    //       move++;
-    //       gameBoard.changeArray(row, index, symbol);
-    //       gameBoard.evaluateArray();
-    //   }
-    // }
+    else {
+      if(event.target.textContent === '') {
+          nameDisplay2.classList.remove('turn');
+          nameDisplay1.classList.add('turn');
+          const index = cell.charAt(cell.length -1);
+          const row = cell.charAt(10);
+          const symbol = 'o';
+          event.target.textContent = symbol;
+          move++;
+          gameBoard.changeArray(row, index, symbol);
+          gameBoard.evaluateArray();
+      }
+    }
   }
 
   function onWinning(value) {
@@ -255,15 +366,23 @@ let move = 1;
         winnerBg.style.display = 'flex';
         champ.textContent = nameDisplay1.textContent;
     } else if(scoreDisplay2.textContent ==='3') {
-          winnerBg.style.display = 'flex';
-          champ.textContent = nameDisplay2.textContent;
+          if(scoreDisplay2.textContent.includes('Machine')) {
+              loserBg.style.display = 'flex';
+          } else {
+              winnerBg.style.display = 'flex';
+              champ.textContent = nameDisplay2.textContent;
+          }
     } else if(roundCounter.textContent > '5') {
         if(scoreDisplay1.textContent > scoreDisplay2.textContent) {
             winnerBg.style.display = 'flex';
             champ.textContent = nameDisplay1.textContent;
         }  else if(scoreDisplay2.textContent > scoreDisplay1.textContent) {
-              winnerBg.style.display = 'flex';
-              champ.textContent = nameDisplay2.textContent;
+              if(scoreDisplay2.textContent.includes('Machine')) {
+                loserBg.style.display = 'flex';
+            } else {
+                winnerBg.style.display = 'flex';
+                champ.textContent = nameDisplay2.textContent;
+            }
         }  else if(scoreDisplay2.textContent === scoreDisplay1.textContent) {
               resetGame();  
               alert('Tie Match');
@@ -292,73 +411,204 @@ let move = 1;
   events.subscribe("move", events.events, onMove);
 })();
 
-// Solo Module
-const soloMode = (function() {
-    const menuBg = document.querySelector('.menu-bg');
-    const soloModeDiv = document.querySelector('.solo-mode');
-    const playerInput = document.querySelector('.solo-mode #player1-name');
-    const levelSelect = document.querySelector('#level');
-    const nameDisplay = document.querySelectorAll('.name-display');
-    const startGameBtn = document.querySelector('.solo-mode .btn');
-
-    function createPlayer() {
-      const playerName = playerInput.value.charAt(0).toUpperCase() + playerInput.value.slice(1,playerInput.value.length);
-  
-      const player1 = Player(playerName);
-      const player2 = Player('Machine', levelSelect.value);
-      
-      nameDisplay[0].textContent = player1.name;
-      nameDisplay[1].textContent = `${player2.name} - ${player2.difficulty}`;
-    }  
-
-    function startGame(event) {
-      if(playerInput.value === '') {
-        event.preventDefault();
-        window.alert('Write your name!')
-      } else {
-          createPlayer();
-          soloModeDiv.style.display = 'none';
-          menuBg.style.display = 'none';
-      }
-    }
-
-    function createMachine() {
-      const nameDisplay1 = document.querySelector('.score-panel ul li:first-of-type p');
-      const nameDisplay2 =  document.querySelector('.score-panel ul li:last-of-type p');
-      let plays = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-      const symbol = 'o';
-      const cells = document.querySelectorAll('.block');
-      events.subscribe('play', events.events, (position) => {
-        if(plays.length) {
-          plays.splice(plays.indexOf(+position), 1);
-          const randomIndex = getRandom(0, plays.length - 1);
-          const cell = cells[plays[randomIndex]].getAttribute('class');
-          const index = cell.charAt(cell.length -1);
-          const row = cell.charAt(10);
-          cells[plays[randomIndex]].textContent = 'o';
-          plays.splice(randomIndex, 1);
-          move++;
-          nameDisplay1.classList.add('turn');
-          nameDisplay2.classList.remove('turn');
-          gameBoard.changeArray(row, index, symbol);
-          gameBoard.checkArray();
-          events.subscribe('reset', events.events, () => {
-            plays = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-          })
-        }
-      })
-        
-    }
-
-    function getRandom(min, max) {
-      return Math.floor(Math.random() * (max - min) + min)
-    }  
-
-    startGameBtn.addEventListener('click', startGame);
-    createMachine();
-})();
-
 // Player Factory
-const Player = function(name, difficulty) {
-  return { name, difficulty }
+const Player = function(name, level) {
+  return { name, level }
 }
+
+// IA
+const smartMachine = (function() {
+  const Move = function() {
+    let row,col;
+    }
+
+    let player = 'o', opponent = 'x';
+
+    // This function returns true if there are moves
+    // remaining on the board. It returns false if
+    // there are no moves left to play.
+    function isMovesLeft(board) {
+    for(let i = 0; i < 3; i++)
+        for(let j = 0; j < 3; j++)
+            if (board[i][j] == '0') 
+                return true;
+                
+    return false;
+    }
+
+    function evaluate(b)
+    {
+    // Checking for Rows for X or O victory.
+    for(let row = 0; row < 3; row++)
+    {
+        if (b[row][0] == b[row][1] &&
+            b[row][1] == b[row][2])
+        {
+            if (b[row][0] == player)
+                return +10;
+                
+            else if (b[row][0] == opponent)
+                return -10;
+        }
+    }
+
+    // Checking for Columns for X or O victory.
+    for(let col = 0; col < 3; col++)
+    {
+        if (b[0][col] == b[1][col] &&
+            b[1][col] == b[2][col])
+        {
+            if (b[0][col] == player)
+                return +10;
+
+            else if (b[0][col] == opponent)
+                return -10;
+        }
+    }
+
+    // Checking for Diagonals for X or O victory.
+    if (b[0][0] == b[1][1] && b[1][1] == b[2][2])
+    {
+        if (b[0][0] == player)
+            return +10;
+            
+        else if (b[0][0] == opponent)
+            return -10;
+    }
+
+    if (b[0][2] == b[1][1] &&
+        b[1][1] == b[2][0])
+    {
+        if (b[0][2] == player)
+            return +10;
+            
+        else if (b[0][2] == opponent)
+            return -10;
+    }
+
+    // Else if none of them have
+    // won then return 0
+    return 0;
+    }
+
+    // This is the minimax function. It
+    // considers all the possible ways
+    // the game can go and returns the
+    // value of the board
+    function minimax(board, depth, isMax) {
+    let score = evaluate(board);
+
+    // If Maximizer has won the game
+    // return his/her evaluated score
+    if (score == 10)
+        return score;
+
+    // If Minimizer has won the game
+    // return his/her evaluated score
+    if (score == -10)
+        return score;
+
+    // If there are no more moves and
+    // no winner then it is a tie
+    if (isMovesLeft(board) == false)
+        return 0;
+
+    // If this maximizer's move
+    if (isMax) {
+        let best = -1000;
+        // Traverse all cells
+        for(let i = 0; i < 3; i++)
+        {
+            for(let j = 0; j < 3; j++)
+            {
+                // Check if cell is empty
+                if (board[i][j]=='0')
+                {
+                    // Make the move
+                    board[i][j] = player;
+                    // Call minimax recursively
+                    // and choose the maximum value
+                    best = Math.max(best, minimax(board,
+                                    depth - 1, !isMax));
+                    // Undo the move
+                    board[i][j] = '0';
+                }
+            }
+        }
+        return best;
+    }
+    // If this minimizer's move
+    else
+    {
+        let best = 1000;
+        // Traverse all cells
+        for(let i = 0; i < 3; i++)
+        {
+            for(let j = 0; j < 3; j++)
+            {
+                // Check if cell is empty
+                if (board[i][j] == '0')
+                {
+                    
+                    // Make the move
+                    board[i][j] = opponent;
+
+                    // Call minimax recursively and
+                    // choose the minimum value
+                    best = Math.min(best, minimax(board,
+                                    depth + 1, !isMax));
+
+                    // Undo the move
+                    board[i][j] = '0';
+                }
+            }
+        }
+        return best;
+    }
+    }
+
+    // This will return the best possible
+    // move for the player
+    function findBestMove(board) {
+    let bestVal = -1000;
+    let bestMove = new Move();
+    bestMove.row = -1;
+    bestMove.col = -1;
+    // Traverse all cells, evaluate
+    // minimax function for all empty
+    // cells. And return the cell
+    // with optimal value.
+    for(let i = 0; i < 3; i++)
+    {
+        for(let j = 0; j < 3; j++)
+        {
+            // Check if cell is empty
+            if (board[i][j] == '0')
+            {
+                // Make the move
+                board[i][j] = player;
+                // compute evaluation function
+                // for this move.
+                let moveVal = minimax(board, 0, false);
+                // Undo the move
+                board[i][j] = '0';
+                // If the value of the current move
+                // is more than the best value, then
+                // update best
+                if (moveVal > bestVal)
+                {
+                    bestMove.row = i;
+                    bestMove.col = j;
+                    bestVal = moveVal;
+                }
+            }
+        }
+    }
+
+    return bestMove;
+    }
+
+    return { findBestMove }
+})()
+
+
