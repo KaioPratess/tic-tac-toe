@@ -78,9 +78,10 @@ const gameBoard = (function() {
 
       if(row0 === 'xxx' || row1 === 'xxx' || row2 ===  'xxx' || col1 === 'xxx' || col2 === 'xxx' || col3 === 'xxx' || diag1 === 'xxx' || diag2 === 'xxx') {
         events.publish('winner', 'x');
-        return 1
+        return -10
       } else if(row0 === 'ooo' || row1 === 'ooo' || row2 ===  'ooo' || col1 === 'ooo' || col2 === 'ooo' || col3 === 'ooo' || diag1 === 'ooo' || diag2 === 'ooo') {
         events.publish('winner', 'o');
+        return 10
       } else if(!row0.includes(0) && !row1.includes(0) && !row2.includes(0)) {
         alert('Tie');
         events.publish('tie', 0);
@@ -105,7 +106,8 @@ const getGameMode = (function () {
   const multiplayerModeDiv = document.querySelector('.multiplayer-mode');
   const soloModeDiv = document.querySelector('.solo-mode');
   const returnArrows = document.querySelectorAll('.arrow');
-
+  const header = document.querySelector('.header h1');
+  
   function selectMultiplayer() {
     gameModeDiv.style.display = 'none';
     multiplayerModeDiv.style.display = 'grid';
@@ -124,12 +126,17 @@ const getGameMode = (function () {
     soloModeDiv.style.display = 'none';
   }
 
+  function reloadPage() {
+    window.location.reload();
+    return false
+  }
+  
   multiplayerBtn.addEventListener('click', selectMultiplayer);
   soloBtn.addEventListener('click', selectSolo);
   returnArrows.forEach((item) => {
     item.addEventListener('click', backToStart);
-});
-
+  });
+  header.addEventListener('click', reloadPage);
 })()
 
 // Multiplayer Module
@@ -236,16 +243,16 @@ events.subscribe('solo', events.events, () => {
                 move++;
               }
               break;
-            case 'Medium':
-                console.log(level.value)
-              break;
             case 'Impossible':
               let board = gameBoard.checkArray();
-              let bestMove = smartMachine.findBestMove(board);
-              console.log("The Optimal Move is:");
-              console.log("ROW: " + bestMove.row + " COL: "+ bestMove.col);
+              let bestMove = machine.findBestMove(board);
               gameBoard.changeArray(bestMove.row, bestMove.col, symbol);
-                move++;
+              console.log("The Optimal Move is :");
+              console.log("ROW: " + bestMove.row +
+               " COL: "+ bestMove.col);
+              move++;
+              nameDisplay1.classList.add('turn');
+              nameDisplay2.classList.remove('turn');
               cells.forEach((cell) => {
                 const cellClass = cell.getAttribute('class');
                 const col = cellClass.charAt(24);
@@ -273,7 +280,7 @@ events.subscribe('solo', events.events, () => {
 });
 
 // Control Game
-(function controlGame() {
+const controlGame = (() => {
   const scoreDisplay1 = document.querySelector('.score-display-one');
   const scoreDisplay2 = document.querySelector('.score-display-two');
   const nameDisplay1 = document.querySelector('.score-panel ul li:first-of-type p');
@@ -302,7 +309,7 @@ events.subscribe('solo', events.events, () => {
         gameBoard.changeArray(row, index, symbol);
         const evalArray = gameBoard.evaluateArray();
 
-        if(evalArray === 1 || evalArray === 0) {
+        if(evalArray === -10 || evalArray === 0) {
             return
         } else {
               events.publish('play', position);   
@@ -366,7 +373,7 @@ events.subscribe('solo', events.events, () => {
         winnerBg.style.display = 'flex';
         champ.textContent = nameDisplay1.textContent;
     } else if(scoreDisplay2.textContent ==='3') {
-          if(scoreDisplay2.textContent.includes('Machine')) {
+          if(nameDisplay2.textContent.startsWith('Machine')) {
               loserBg.style.display = 'flex';
           } else {
               winnerBg.style.display = 'flex';
@@ -377,7 +384,7 @@ events.subscribe('solo', events.events, () => {
             winnerBg.style.display = 'flex';
             champ.textContent = nameDisplay1.textContent;
         }  else if(scoreDisplay2.textContent > scoreDisplay1.textContent) {
-              if(scoreDisplay2.textContent.includes('Machine')) {
+              if(nameDisplay2.textContent.startsWith('Machine')) {
                 loserBg.style.display = 'flex';
             } else {
                 winnerBg.style.display = 'flex';
@@ -393,6 +400,7 @@ events.subscribe('solo', events.events, () => {
   
   function resetGame() {
       winnerBg.style.display = 'none';
+      loserBg.style.display = 'none';
       scoreDisplay1.textContent = 0;
       scoreDisplay2.textContent = 0;
       roundCounter.textContent = 0;
@@ -409,6 +417,8 @@ events.subscribe('solo', events.events, () => {
   events.subscribe('tie', events.events, onTie);
   events.subscribe('winner', events.events, onWinning);
   events.subscribe("move", events.events, onMove);
+  
+  return {resetGame}
 })();
 
 // Player Factory
@@ -416,199 +426,129 @@ const Player = function(name, level) {
   return { name, level }
 }
 
-// IA
-const smartMachine = (function() {
-  const Move = function() {
-    let row,col;
-    }
+const machine = (() => {
+  const Move = () => {
+    let row;
+    let col;
+    return {row, col}
+  }
+ 
+  let player = 'o', opponent = 'x';
+ 
+  function isMovesLeft(board) {
+      for(let i = 0; i < 3; i++) {
+        for(let j = 0; j < 3; j++) {
+          if (board[i][j] == '0')
+          return true;       
+        }
+      }
+      return false;
+  }
 
-    let player = 'o', opponent = 'x';
-
-    // This function returns true if there are moves
-    // remaining on the board. It returns false if
-    // there are no moves left to play.
-    function isMovesLeft(board) {
-    for(let i = 0; i < 3; i++)
-        for(let j = 0; j < 3; j++)
-            if (board[i][j] == '0') 
-                return true;
-                
-    return false;
-    }
-
-    function evaluate(b)
-    {
-    // Checking for Rows for X or O victory.
-    for(let row = 0; row < 3; row++)
-    {
-        if (b[row][0] == b[row][1] &&
-            b[row][1] == b[row][2])
-        {
-            if (b[row][0] == player)
+  function evaluate(b) {
+      // Checking for Rows for X or O victory.
+      for(let row = 0; row < 3; row++) {
+          if (b[row][0] == b[row][1] && b[row][1] == b[row][2]) {
+              if (b[row][0] == player) {
                 return +10;
-                
-            else if (b[row][0] == opponent)
-                return -10;
-        }
-    }
-
-    // Checking for Columns for X or O victory.
-    for(let col = 0; col < 3; col++)
-    {
-        if (b[0][col] == b[1][col] &&
-            b[1][col] == b[2][col])
-        {
-            if (b[0][col] == player)
+              } else if (b[row][0] == opponent) {
+                  return -10;
+              }
+          }
+      }
+    
+      // Checking for Columns for X or O victory.
+      for(let col = 0; col < 3; col++) {
+          if (b[0][col] == b[1][col] && b[1][col] == b[2][col]) {
+              if (b[0][col] == player) {
                 return +10;
-
-            else if (b[0][col] == opponent)
-                return -10;
-        }
-    }
-
-    // Checking for Diagonals for X or O victory.
-    if (b[0][0] == b[1][1] && b[1][1] == b[2][2])
-    {
-        if (b[0][0] == player)
+              } else if (b[0][col] == opponent) {
+                  return -10;
+              }
+          }
+      }
+    
+      // Checking for Diagonals for X or O victory.
+      if (b[0][0] == b[1][1] && b[1][1] == b[2][2]) {
+          if (b[0][0] == player) {
             return +10;
-            
-        else if (b[0][0] == opponent)
-            return -10;
-    }
-
-    if (b[0][2] == b[1][1] &&
-        b[1][1] == b[2][0])
-    {
-        if (b[0][2] == player)
+          } else if (b[0][0] == opponent) {
+              return -10;
+          }
+      }
+    
+      if (b[0][2] == b[1][1] && b[1][1] == b[2][0]) {
+          if (b[0][2] == player) {
             return +10;
-            
-        else if (b[0][2] == opponent)
-            return -10;
-    }
+          } else if (b[0][2] == opponent) {
+              return -10;
+          }
+      }
+      return 0;
+  }
 
-    // Else if none of them have
-    // won then return 0
-    return 0;
-    }
+  function minimax(board, depth, isMax) {
+      let score = evaluate(board);
+      if(score === 10 || score === -10) {
+        return score
+      }
 
-    // This is the minimax function. It
-    // considers all the possible ways
-    // the game can go and returns the
-    // value of the board
-    function minimax(board, depth, isMax) {
-    let score = evaluate(board);
+      if (isMovesLeft(board) == false)
+          return 0;
+    
+      if (isMax) {
+          let value = -Infinity;
+    
+          for(let i = 0; i < 3; i++) {
+              for(let j = 0; j < 3; j++) {
+                  if (board[i][j]=='0'){     
+                      board[i][j] = player;
+                      value = Math.max(value, minimax(board, depth + 1, false));
+                      board[i][j] = '0';
+                  }
+              }
+          }
+          return value;
+      }
+      else {
+          let value = Infinity;
+          for(let i = 0; i < 3; i++) {
+              for(let j = 0; j < 3; j++) {
+                  if (board[i][j] == '0') {
+                      board[i][j] = opponent;
+                      value = Math.min(value, minimax(board, depth + 1, true));
+                      board[i][j] = '0';
+                  }
+              }
+          }
+          return value;
+      }
+  }
+   
+  // This will return the best possible
+  // move for the player
+  function findBestMove(board) {
+      let bestVal = -Infinity;
+      let bestMove = Move();
+      bestMove.row = -1;
+      bestMove.col = -1;
+    
+      for(let i = 0; i < 3; i++) {
+          for(let j = 0; j < 3; j++) {
+              if (board[i][j] == '0') {
+                  board[i][j] = player;
+                  let moveVal = minimax(board, 0, false);
+                  board[i][j] = '0';
+                  if (moveVal > bestVal) {
+                      bestMove.row = i;
+                      bestMove.col = j;
+                      bestVal = moveVal;
+                  }
+              }
+          }
+      }
+      return bestMove;
+  }
 
-    // If Maximizer has won the game
-    // return his/her evaluated score
-    if (score == 10)
-        return score;
-
-    // If Minimizer has won the game
-    // return his/her evaluated score
-    if (score == -10)
-        return score;
-
-    // If there are no more moves and
-    // no winner then it is a tie
-    if (isMovesLeft(board) == false)
-        return 0;
-
-    // If this maximizer's move
-    if (isMax) {
-        let best = -1000;
-        // Traverse all cells
-        for(let i = 0; i < 3; i++)
-        {
-            for(let j = 0; j < 3; j++)
-            {
-                // Check if cell is empty
-                if (board[i][j]=='0')
-                {
-                    // Make the move
-                    board[i][j] = player;
-                    // Call minimax recursively
-                    // and choose the maximum value
-                    best = Math.max(best, minimax(board,
-                                    depth - 1, !isMax));
-                    // Undo the move
-                    board[i][j] = '0';
-                }
-            }
-        }
-        return best;
-    }
-    // If this minimizer's move
-    else
-    {
-        let best = 1000;
-        // Traverse all cells
-        for(let i = 0; i < 3; i++)
-        {
-            for(let j = 0; j < 3; j++)
-            {
-                // Check if cell is empty
-                if (board[i][j] == '0')
-                {
-                    
-                    // Make the move
-                    board[i][j] = opponent;
-
-                    // Call minimax recursively and
-                    // choose the minimum value
-                    best = Math.min(best, minimax(board,
-                                    depth + 1, !isMax));
-
-                    // Undo the move
-                    board[i][j] = '0';
-                }
-            }
-        }
-        return best;
-    }
-    }
-
-    // This will return the best possible
-    // move for the player
-    function findBestMove(board) {
-    let bestVal = -1000;
-    let bestMove = new Move();
-    bestMove.row = -1;
-    bestMove.col = -1;
-    // Traverse all cells, evaluate
-    // minimax function for all empty
-    // cells. And return the cell
-    // with optimal value.
-    for(let i = 0; i < 3; i++)
-    {
-        for(let j = 0; j < 3; j++)
-        {
-            // Check if cell is empty
-            if (board[i][j] == '0')
-            {
-                // Make the move
-                board[i][j] = player;
-                // compute evaluation function
-                // for this move.
-                let moveVal = minimax(board, 0, false);
-                // Undo the move
-                board[i][j] = '0';
-                // If the value of the current move
-                // is more than the best value, then
-                // update best
-                if (moveVal > bestVal)
-                {
-                    bestMove.row = i;
-                    bestMove.col = j;
-                    bestVal = moveVal;
-                }
-            }
-        }
-    }
-
-    return bestMove;
-    }
-
-    return { findBestMove }
+  return {findBestMove}
 })()
-
-

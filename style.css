@@ -24,6 +24,10 @@ img {
   padding: 20px 40px;
 }
 
+.header h1 {
+  cursor: pointer;
+}
+
 /* MAIN */
 .main {
   flex: 3;
@@ -50,13 +54,15 @@ img {
 
 .score-panel ul li:nth-child(1) p.turn::before,
 .score-panel ul li:nth-child(3) p.turn::before {
-  content: '▼';
+  content: '►';
   display: inline-block;
   position: absolute;
-  top: -35px;
-  right: 85px;
-  margin-right: 50px;
+  left: 0px;
   color: white;
+}
+
+.score-panel ul li:nth-child(3) p.turn::before {
+  left: -40px;
 }
 
 .score-panel p {
@@ -69,6 +75,23 @@ img {
 
 .round p:last-child {
   font-size: 1.5rem;
+}
+
+@media (max-width: 850px) {
+  .score-panel p {
+    font-size: 1.5rem;
+  }
+  
+  .score-panel span {
+    font-size: 1rem;
+  }
+  
+  .round p:last-child {
+    font-size: 1rem;
+  }
+  .score-panel ul li:nth-child(3) p.turn::before {
+    left: 0px;
+  }
 }
 
 /* GAME BOARD */
