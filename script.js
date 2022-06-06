@@ -23,7 +23,7 @@ instance.callback(data);
 }
 }
 };
-console.log(events.events)
+
 // Game Board Module
 const gameBoard = (function() {  
     const board = document.querySelector('.game-board');
@@ -31,7 +31,7 @@ const gameBoard = (function() {
     let index = 0;
     const array = new Array(3).fill(0).map(() => new Array(3).fill(0));
 
-    function createCells() {
+    function _createCells() {
         for(row of array) {
           for(column of row) {
             const div = document.createElement('div');
@@ -93,7 +93,7 @@ const gameBoard = (function() {
       return array
     }
     
-    createCells();
+    _createCells();
 
     return {changeArray, evaluateArray, resetArray, checkArray}
 })();
@@ -108,35 +108,35 @@ const getGameMode = (function () {
   const returnArrows = document.querySelectorAll('.arrow');
   const header = document.querySelector('.header h1');
   
-  function selectMultiplayer() {
+  function _selectMultiplayer() {
     gameModeDiv.style.display = 'none';
     multiplayerModeDiv.style.display = 'grid';
     events.publish('multiplayer', '');
   }
 
-  function selectSolo() {
+  function _selectSolo() {
     gameModeDiv.style.display = 'none';
     soloModeDiv.style.display = 'grid';
     events.publish('solo', '');
   }
 
-  function backToStart() {
+  function _backToStart() {
     gameModeDiv.style.display = 'grid';
     multiplayerModeDiv.style.display = 'none';
     soloModeDiv.style.display = 'none';
   }
 
-  function reloadPage() {
+  function _reloadPage() {
     window.location.reload();
     return false
   }
   
-  multiplayerBtn.addEventListener('click', selectMultiplayer);
-  soloBtn.addEventListener('click', selectSolo);
+  multiplayerBtn.addEventListener('click', _selectMultiplayer);
+  soloBtn.addEventListener('click', _selectSolo);
   returnArrows.forEach((item) => {
-    item.addEventListener('click', backToStart);
+    item.addEventListener('click', _backToStart);
   });
-  header.addEventListener('click', reloadPage);
+  header.addEventListener('click', _reloadPage);
 })()
 
 // Multiplayer Module
@@ -151,7 +151,7 @@ events.subscribe('multiplayer', events.events, () => {
     let player1;
     let player2;
   
-    function createPlayer() {
+    function _createPlayer() {
         const player1Name = playerInput[0].value.charAt(0).toUpperCase() + playerInput[0].value.slice(1,playerInput[0].value.length);
         const player2Name = playerInput[1].value.charAt(0).toUpperCase() + playerInput[1].value.slice(1,playerInput[1].value.length);
   
@@ -162,18 +162,18 @@ events.subscribe('multiplayer', events.events, () => {
         nameDisplay[1].textContent = player2.name;
       } 
   
-      function startGame(event) {
+      function _startGame(event) {
         if(playerInput[0].value === '' || playerInput[1].value === '') {
           event.preventDefault();
           window.alert('Write your names!');
         } else {
-            createPlayer()
+            _createPlayer()
             multiplayerModeDiv.style.display = 'none';
             menuBg.style.display = 'none';
           }
       }
   
-      startGameBtn.addEventListener('click', startGame);
+      startGameBtn.addEventListener('click', _startGame);
   })();
 })
 
@@ -191,7 +191,7 @@ events.subscribe('solo', events.events, () => {
     const nameDisplay = document.querySelectorAll('.name-display');
     const startGameBtn = document.querySelector('.solo-mode .btn');
 
-    function createPlayer() {
+    function _createPlayer() {
       const playerName = playerInput.value.charAt(0).toUpperCase() + playerInput.value.slice(1,playerInput.value.length);
   
       const player1 = Player(playerName);
@@ -201,18 +201,18 @@ events.subscribe('solo', events.events, () => {
       nameDisplay[1].textContent = `${player2.name} - ${player2.level}`;
     }  
 
-    function startGame(event) {
+    function _startGame(event) {
       if(playerInput.value === '') {
         event.preventDefault();
         window.alert('Write your name!')
       } else {
-          createPlayer();
+          _createPlayer();
           soloModeDiv.style.display = 'none';
           menuBg.style.display = 'none';
       }
     }
 
-    function createMachine() {
+    function _createMachine() {
       const nameDisplay1 = document.querySelector('.score-panel ul li:first-of-type p');
       const nameDisplay2 =  document.querySelector('.score-panel ul li:last-of-type p');
       let plays = [0, 1, 2, 3, 4, 5, 6, 7, 8];
@@ -226,7 +226,7 @@ events.subscribe('solo', events.events, () => {
               gameBoard.evaluateArray();
             } else {
               plays.splice(plays.indexOf(+position), 1);
-              const randomIndex = getRandom(0, plays.length - 1);
+              const randomIndex = _getRandom(0, plays.length - 1);
               const cell = cells[plays[randomIndex]].getAttribute('class');
               const index = cell.charAt(cell.length -1);
               const row = cell.charAt(10);
@@ -270,12 +270,12 @@ events.subscribe('solo', events.events, () => {
       })
     }
 
-    function getRandom(min, max) {
+    function _getRandom(min, max) {
       return Math.floor(Math.random() * (max - min) + min)
     }  
 
-    startGameBtn.addEventListener('click', startGame);
-    createMachine();
+    startGameBtn.addEventListener('click', _startGame);
+    _createMachine();
 })();
 });
 
@@ -293,7 +293,7 @@ const controlGame = (() => {
   const restartButtons = document.querySelectorAll('.restart-btn');
   nameDisplay1.classList.add('turn');
   
-  function onMove(event) {
+  function _onMove(event) {
     const cell = event.target.getAttribute('class');
     // player 1 move
     if(move % 2 !== 0) {
@@ -332,7 +332,7 @@ const controlGame = (() => {
     }
   }
 
-  function onWinning(value) {
+  function _onWinning(value) {
     setTimeout(() => {
       nameDisplay2.classList.remove('turn');
       nameDisplay1.classList.add('turn');
@@ -352,7 +352,7 @@ const controlGame = (() => {
     }, 100)
   }
 
-  function onTie() {
+  function _onTie() {
     setTimeout(() => {
       nameDisplay2.classList.remove('turn');
       nameDisplay1.classList.add('turn');
@@ -367,7 +367,7 @@ const controlGame = (() => {
     }, 100)
   }
 
-  function countScore() {
+  function _countScore() {
     setTimeout(() => {
       if(scoreDisplay1.textContent === '3') {
         winnerBg.style.display = 'flex';
@@ -414,9 +414,9 @@ const controlGame = (() => {
   restartButtons.forEach((btn) => {
     btn.addEventListener('click', resetGame);
   });
-  events.subscribe('tie', events.events, onTie);
-  events.subscribe('winner', events.events, onWinning);
-  events.subscribe("move", events.events, onMove);
+  events.subscribe('tie', events.events, _onTie);
+  events.subscribe('winner', events.events, _onWinning);
+  events.subscribe("move", events.events, _onMove);
   
   return {resetGame}
 })();
@@ -427,7 +427,7 @@ const Player = function(name, level) {
 }
 
 const machine = (() => {
-  const Move = () => {
+  const _Move = () => {
     let row;
     let col;
     return {row, col}
@@ -435,7 +435,7 @@ const machine = (() => {
  
   let player = 'o', opponent = 'x';
  
-  function isMovesLeft(board) {
+  function _isMovesLeft(board) {
       for(let i = 0; i < 3; i++) {
         for(let j = 0; j < 3; j++) {
           if (board[i][j] == '0')
@@ -445,7 +445,7 @@ const machine = (() => {
       return false;
   }
 
-  function evaluate(b) {
+  function _evaluate(b) {
       // Checking for Rows for X or O victory.
       for(let row = 0; row < 3; row++) {
           if (b[row][0] == b[row][1] && b[row][1] == b[row][2]) {
@@ -488,12 +488,12 @@ const machine = (() => {
   }
 
   function minimax(board, depth, isMax) {
-      let score = evaluate(board);
+      let score = _evaluate(board);
       if(score === 10 || score === -10) {
         return score
       }
 
-      if (isMovesLeft(board) == false)
+      if (_isMovesLeft(board) == false)
           return 0;
     
       if (isMax) {
